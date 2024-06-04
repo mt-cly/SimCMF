@@ -158,9 +158,7 @@ def _build_sam(
                 if name in state_dict and param.shape != state_dict[name].shape:
                     print(f'the {name} in pretrained checkpoints mismatch with SAM model, is discard.')
                     state_dict.pop(name)
-                elif name in state_dict and args.discard_patch and 'patch_embed.proj' in name:
-                    print(f'the {name} in pretrained checkpoints is discard.')
-                    state_dict.pop(name)
+
         sam.load_state_dict(state_dict, strict=False)
-        print('loading success')
+        print(f'loading {checkpoint} success')
     return sam

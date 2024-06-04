@@ -2,7 +2,6 @@ import sys
 import cv2
 from torch.autograd import Function
 import torchvision
-import torchvision.utils as vutils
 import random
 import logging
 import os
@@ -13,14 +12,13 @@ import dateutil.tz
 import cfg
 import numpy as np
 import torch
+from conf.global_settings import modality_channel_map
 
-args = cfg.parse_args()
-device = torch.device('cuda', args.gpu_device)
 
 def get_network(args, net, proj_type):
     """ return given network
     """
-    in_chans = {'zju-rgbp': 9, 'zju-rgbp-rgb': 3, 'pgsnet_rgbp': 9, 'pgsnet_p':6, 'isic': 3, 'rgbd':4, 'd':1, 'rgbhha':6, 'hha':3, 'nir':1, 'rgbnir':4, 'rgbt':4, 'rgbt_500':4, 't':1, 't_500': 1, 't_few':1}[args.dataset]
+    in_chans = modality_channel_map[args.modality]
     pretrained_state_dict = torch.load(args.sam_ckpt) if args.sam_ckpt else None
     params = {'checkpoint': args.sam_ckpt,
               'in_chans': in_chans,
@@ -28,7 +26,7 @@ def get_network(args, net, proj_type):
               'pretrained_state_dict':pretrained_state_dict}
 
     if net in ['sam_full_finetune', 'sam_linear_probing']:
-        from models.sam_naive import  sam_model_registry
+        from models.sam_naive import sam_model_registry
         net = sam_model_registry['vit_b'](args, **params)
     elif net == 'sam_mlp_adapter':
         from models.sam_mlp_adapter import sam_model_registry

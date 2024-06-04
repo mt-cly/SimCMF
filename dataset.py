@@ -10,9 +10,12 @@ import pandas as pd
 from utils import random_click
 from glob import glob
 from torch.utils.data.distributed import DistributedSampler
+from conf.global_settings import modality_datapath_map
 
 def get_dataloader(args):
-    '''segmentation data'''
+
+    data_path = modality_datapath_map[args.modality]
+    
     transform_train = transforms.Compose([
         transforms.ToTensor(),
         transforms.Resize((args.image_size, args.image_size)),
@@ -35,26 +38,11 @@ def get_dataloader(args):
                           interpolation=transforms.InterpolationMode.NEAREST),
     ])
 
-    if args.dataset == 'isic':
-        '''isic data'''
-        isic_train_dataset = ISIC2016(args, args.data_path, transform=transform_train,
-                                      transform_msk=transform_train_seg, mode='Training')
-        isic_test_dataset = ISIC2016(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
-                                     mode='Test')
-        train_sampler, test_sampler = None, None
-        if args.ddp:
-            train_sampler = DistributedSampler(isic_train_dataset)
-            test_sampler = DistributedSampler(isic_test_dataset)
-        nice_train_loader = DataLoader(isic_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
-        nice_test_loader = DataLoader(isic_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
-        '''end'''
-    elif args.dataset == "zju-rgbp":
+    if args.modality == "zju-rgbp":
         '''zju_rgbp data'''
-        zju_rgbp_train_dataset = ZJU_RGBP(args, args.data_path, transform=transform_train,
+        zju_rgbp_train_dataset = ZJU_RGBP(args, data_path, transform=transform_train,
                                           transform_msk=transform_train_seg, mode='train')
-        zju_rgbp_test_dataset = ZJU_RGBP(args, args.data_path, transform=transform_test,
+        zju_rgbp_test_dataset = ZJU_RGBP(args, data_path, transform=transform_test,
                                          transform_msk=transform_test_seg, mode='val')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -66,12 +54,12 @@ def get_dataloader(args):
                                       pin_memory=True)
         '''end'''
 
-    elif args.dataset == "nir":
+    elif args.modality == "nir":
         '''nir data'''
-        nir_train_dataset = NIR(args, args.data_path, transform = transform_train,
+        nir_train_dataset = NIR(args, data_path, transform = transform_train,
                                    transform_msk= transform_train_seg, mode = 'train')
 
-        nir_test_dataset =  NIR(args, args.data_path, transform = transform_test,
+        nir_test_dataset =  NIR(args, data_path, transform = transform_test,
                                    transform_msk= transform_test_seg, mode = 'test')
 
         train_sampler, test_sampler = None, None
@@ -83,12 +71,12 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "rgbnir":
+    elif args.modality == "rgbnir":
         '''nir data'''
-        nir_train_dataset = RGBNIR(args, args.data_path, transform = transform_train,
+        nir_train_dataset = RGBNIR(args, data_path, transform = transform_train,
                                    transform_msk= transform_train_seg, mode = 'train')
 
-        nir_test_dataset =  RGBNIR(args, args.data_path, transform = transform_test,
+        nir_test_dataset =  RGBNIR(args, data_path, transform = transform_test,
                                    transform_msk= transform_test_seg, mode = 'test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -99,25 +87,12 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "zju-rgbp-rgb":
-        zju_rgbp_train_dataset = ZJU_RGBP_RGB(args, args.data_path, transform=transform_train,
-                                              transform_msk=transform_train_seg, mode='train')
-        zju_rgbp_test_dataset = ZJU_RGBP_RGB(args, args.data_path, transform=transform_test,
-                                             transform_msk=transform_test_seg, mode='val')
-        train_sampler, test_sampler = None, None
-        if args.ddp:
-            train_sampler = DistributedSampler(zju_rgbp_train_dataset)
-            test_sampler = DistributedSampler(zju_rgbp_test_dataset)
-        nice_train_loader = DataLoader(zju_rgbp_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
-        nice_test_loader = DataLoader(zju_rgbp_test_dataset, batch_size=1, ssampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
 
-    elif args.dataset == "rgbt":
+    elif args.modality == "rgbt":
         '''rgb and thermal glass data'''
-        nir_train_dataset = RGBThermal(args, args.data_path, transform=transform_train,
+        nir_train_dataset = RGBThermal(args, data_path, transform=transform_train,
                                        transform_msk=transform_train_seg, mode='train')
-        nir_test_dataset = RGBThermal(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nir_test_dataset = RGBThermal(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                       mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -128,11 +103,11 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "t":
+    elif args.modality == "t":
         '''rgb and thermal glass data'''
-        nir_train_dataset = Thermal(args, args.data_path, transform=transform_train,
+        nir_train_dataset = Thermal(args, data_path, transform=transform_train,
                                        transform_msk=transform_train_seg, mode='train')
-        nir_test_dataset = Thermal(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nir_test_dataset = Thermal(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                       mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -143,11 +118,11 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "rgbt_500":
+    elif args.modality == "rgbt_500":
         '''rgb and thermal glass data'''
-        rgbt_train_dataset = RGBThermal_500(args, args.data_path, transform=transform_train,
+        rgbt_train_dataset = RGBThermal_500(args, data_path, transform=transform_train,
                                        transform_msk=transform_train_seg, mode='train')
-        rgbt_test_dataset = RGBThermal_500(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        rgbt_test_dataset = RGBThermal_500(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                       mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -158,11 +133,11 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(rgbt_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "t_500":
+    elif args.modality == "t_500":
         '''rgb and thermal glass data'''
-        t_train_dataset = Thermal_500(args, args.data_path, transform=transform_train,
+        t_train_dataset = Thermal_500(args, data_path, transform=transform_train,
                                        transform_msk=transform_train_seg, mode='train')
-        t_test_dataset = Thermal_500(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        t_test_dataset = Thermal_500(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                       mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -173,25 +148,10 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(t_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "t_few":
-        '''rgb and thermal glass data'''
-        nir_train_dataset = ThermalFewshot(args, args.data_path, transform=transform_train,
-                                       transform_msk=transform_train_seg, mode='train')
-        nir_test_dataset = ThermalFewshot(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
-                                      mode='test')
-        train_sampler, test_sampler = None, None
-        if args.ddp:
-            train_sampler = DistributedSampler(nir_train_dataset)
-            test_sampler = DistributedSampler(nir_test_dataset)
-        nice_train_loader = DataLoader(nir_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
-        nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
-
-    elif args.dataset == "pgsnet_rgbp":
-        pgsnet_train_dataset = PGSNet_RGBP(args, args.data_path, transform=transform_train,
+    elif args.modality == "pgsnet_rgbp":
+        pgsnet_train_dataset = PGSNet_RGBP(args, data_path, transform=transform_train,
                                       transform_msk=transform_train_seg, mode='train', ratio=args.ratio)
-        pgsnet_test_dataset = PGSNet_RGBP(args, args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        pgsnet_test_dataset = PGSNet_RGBP(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -202,10 +162,10 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(pgsnet_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == "pgsnet_p":
-        pgsnet_train_dataset = PGSNet_P(args, args.data_path, transform=transform_train,
+    elif args.modality == "pgsnet_p":
+        pgsnet_train_dataset = PGSNet_P(args, data_path, transform=transform_train,
                                            transform_msk=transform_train_seg, mode='train')
-        pgsnet_test_dataset = PGSNet_P(args, args.data_path, transform=transform_test,
+        pgsnet_test_dataset = PGSNet_P(args, data_path, transform=transform_test,
                                           transform_msk=transform_test_seg,
                                           mode='test')
         train_sampler, test_sampler = None, None
@@ -217,10 +177,10 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(pgsnet_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
                                       pin_memory=True)
 
-    elif args.dataset == 'rgbd' or args.dataset == 'rgbhha':
-        nyudv2_train_dataset = NYUDv2_RGBD(args.data_path, transform=transform_train, transform_msk=transform_train_seg,
+    elif args.modality == 'rgbd' or args.modality == 'rgbhha':
+        nyudv2_train_dataset = NYUDv2_RGBD(data_path, transform=transform_train, transform_msk=transform_train_seg,
                                       mode='train', samples_per=args.samples_per)
-        nyudv2_test_dataset = NYUDv2_RGBD(args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nyudv2_test_dataset = NYUDv2_RGBD(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -230,10 +190,10 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
                                       pin_memory=True)
 
-    elif args.dataset == 'd':
-        nyudv2_train_dataset = NYUDv2_D(args.data_path, transform=transform_train, transform_msk=transform_train_seg,
+    elif args.modality == 'd':
+        nyudv2_train_dataset = NYUDv2_D(data_path, transform=transform_train, transform_msk=transform_train_seg,
                                       mode='train', samples_per=args.samples_per)
-        nyudv2_test_dataset = NYUDv2_D(args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nyudv2_test_dataset = NYUDv2_D(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -244,10 +204,10 @@ def get_dataloader(args):
                                       pin_memory=True)
 
 
-    elif args.dataset == 'hha':
-        nyudv2_train_dataset = NYUDv2_HHA(args.data_path, transform=transform_train, transform_msk=transform_train_seg,
+    elif args.modality == 'hha':
+        nyudv2_train_dataset = NYUDv2_HHA(data_path, transform=transform_train, transform_msk=transform_train_seg,
                                       mode='train', samples_per=args.samples_per, )
-        nyudv2_test_dataset = NYUDv2_HHA(args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nyudv2_test_dataset = NYUDv2_HHA(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -257,10 +217,10 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
                                       pin_memory=True)
 
-    elif args.dataset == 'rgbhha':
-        nyudv2_train_dataset = NYUDv2_RGBHHA(args.data_path, transform=transform_train, transform_msk=transform_train_seg,
+    elif args.modality == 'rgbhha':
+        nyudv2_train_dataset = NYUDv2_RGBHHA(data_path, transform=transform_train, transform_msk=transform_train_seg,
                                       mode='train', samples_per=args.samples_per, )
-        nyudv2_test_dataset = NYUDv2_RGBHHA(args.data_path, transform=transform_test, transform_msk=transform_test_seg,
+        nyudv2_test_dataset = NYUDv2_RGBHHA(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
         if args.ddp:
@@ -270,78 +230,13 @@ def get_dataloader(args):
         nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
                                       pin_memory=True)
 
-    elif args.dataset == 'taskonnomy_10':
+    elif args.modality == 'taskonnomy_10':
         raise NotImplementedError
 
     else:
         raise NotImplementedError
 
     return nice_train_loader, nice_test_loader, train_sampler, test_sampler
-
-
-class ISIC2016(Dataset):
-    def __init__(self, args, data_path, transform=None, transform_msk=None, mode='Training', prompt='click',plane=False):
-        # mean/std statistics  of each modality channel
-        self.mean = torch.Tensor([0.7240367, 0.6188159, 0.56717324])[:,None,None]
-        self.std = torch.Tensor([0.16498218, 0.17223234, 0.19289039])[:,None,None]
-        df = pd.read_csv(os.path.join(data_path, 'ISBI2016_ISIC_Part3B_' + mode + '_GroundTruth.csv'), encoding='gbk')
-        # self.name_list = df.iloc[:,1].tolist()
-        # self.label_list = df.iloc[:,2].tolist()
-        self.name_list = df.iloc[:, 0].tolist()
-        self.data_path = os.path.join(data_path, 'ISBI2016_ISIC_Part3B_' + mode + '_Data')
-        self.mode = mode
-        self.prompt = prompt
-        self.img_size = args.image_size
-
-        self.transform = transform
-        self.transform_msk = transform_msk
-
-    def __len__(self):
-        return len(self.name_list)
-
-    def __getitem__(self, index):
-        """Get the images"""
-        name = self.name_list[index] + '.jpg'
-        img_path = os.path.join(self.data_path, name)
-
-        mask_name = self.name_list[index] + '_Segmentation.png'
-        msk_path = os.path.join(self.data_path, mask_name)
-
-        img = Image.open(img_path).convert('RGB')
-        mask = Image.open(msk_path).convert('L')
-
-        newsize = (self.img_size, self.img_size)
-        mask = mask.resize(newsize, Image.NEAREST)
-
-        if self.prompt == 'click':
-            pt = random_click(np.array(mask) / 255, 1, region_id=1, middle=self.mode=='Test')[None]
-            point_label = np.array([1])
-            valid_region_ids = np.array([1])
-
-        if self.transform:
-            state = torch.get_rng_state()
-            img = self.transform(img)
-            torch.set_rng_state(state)
-
-        if self.transform_msk:
-            mask = self.transform_msk(mask)
-
-            # if (inout == 0 and point_label == 1) or (inout == 1 and point_label == 0):
-            #     mask = 1 - mask
-
-        name = name.split('/')[-1].split(".jpg")[0]
-        image_meta_dict = {'filename_or_obj': name}
-
-        # normalization
-        img = (img - self.mean)/self.std
-        return {
-            'image': img,
-            'label': mask,
-            'p_label': point_label,
-            'pt': pt,
-            'valid_region_ids': valid_region_ids,
-            'image_meta_dict': image_meta_dict,
-        }
 
 
 class ZJU_RGBP(Dataset):
@@ -816,17 +711,11 @@ class NYUDv2_RGBD(Dataset):
         hha_path = os.path.join(self._data_path, hha_name)
         depth_path = os.path.join(self._data_path, depth_name)
 
-        # img = self._open_image(img_path, cv2.COLOR_BGR2RGB)
-        # gt = self._open_image(gt_path, cv2.IMREAD_GRAYSCALE, dtype=np.uint8)
 
         img_rgb = Image.open(img_path).convert('RGB')
-        # img = Image.open(color_label_path).convert('RGB')
-        img_hha = Image.open(hha_path).convert('RGB')
 
-        import matplotlib as mpl
         img_d = np.load(depth_path, allow_pickle=True)
         img_d = (img_d - np.min(img_d)) / (np.max(img_d) - np.min(img_d))
-        # img_d = np.repeat(img_d[:,:,None], 3, axis=-1)
         img_d = img_d * 255
         img_d = img_d.astype(np.uint8)
         img = np.concatenate((np.array(img_rgb), img_d[:,:,None]), axis=-1)
@@ -962,7 +851,6 @@ class NYUDv2_D(Dataset):
         lines = f.readlines()
         for line in lines:
             self._name_list.append(line.split('\t')[0])
-        # random.shuffle(self._name_list)
         len_dataset = int(len(self._name_list) * samples_per)
         self._name_list = self._name_list[:len_dataset]
         self.img_size = 1024
@@ -982,12 +870,8 @@ class NYUDv2_D(Dataset):
         hha_path = os.path.join(self._data_path, hha_name)
         depth_path = os.path.join(self._data_path, depth_name)
 
-
-
-        import matplotlib as mpl
         img_d = np.load(depth_path, allow_pickle=True)
         img_d = (img_d - np.min(img_d)) / (np.max(img_d) - np.min(img_d))
-        # img_d = np.repeat(img_d[:,:,None], 3, axis=-1)
         img_d = img_d * 255
         img_d = img_d.astype(np.uint8)
         img = img_d[:,:,None]

@@ -40,29 +40,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader, epoch, writer=None,
             for item_name in pack['image_meta_dict']['filename_or_obj']:
                 name += item_name.split('/')[-1].split('.')[0] + '_'
 
-            if args.thd:
-                pt = rearrange(pt, 'b n d -> (b d) n')
-                imgs = rearrange(imgs, 'b c h w d -> (b d) c h w ')
-                masks = rearrange(masks, 'b c h w d -> (b d) c h w ')
-
-                imgs = imgs.repeat(1,3,1,1)
-                point_labels = torch.ones(imgs.size(0))
-
-                imgs = torchvision.transforms.Resize((args.image_size,args.image_size))(imgs)
-                masks = torchvision.transforms.Resize((args.out_size,args.out_size))(masks)
-
-            b_size,c,w,h = imgs.size()
-
-            # if point_labels[0] != -1:
-            #     # point_coords = samtrans.ResizeLongestSide(longsize).apply_coords(pt, (h, w))
-            #     point_coords = pt
-            #     coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=GPUdevice)
-            #     labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=GPUdevice)
-            #     if args.dataset != 'nyudv2':
-            #         # coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]
-            #         coords_torch, labels_torch = coords_torch[:, None, :], labels_torch[:, None]
-            #     labels_torch = torch.ones_like(labels_torch)
-            #     pt = (coords_torch, labels_torch)
 
             '''Train'''
             click_prompt = (torch.as_tensor(pt, dtype=torch.float).cuda(), torch.as_tensor(point_labels, dtype=torch.float).cuda())
@@ -116,31 +93,14 @@ def validation_sam(args, val_loader, epoch, net: nn.Module):
             name = pack['image_meta_dict']['filename_or_obj']
             
             buoy = 0
-            if args.evl_chunk:
-                evl_ch = int(args.evl_chunk)
-            else:
-                evl_ch = int(imgsw.size(-1))
+            evl_ch = int(imgsw.size(-1))
 
             while (buoy + evl_ch) <= imgsw.size(-1):
-                if args.thd:
-                    pt = ptw[:,:,buoy: buoy + evl_ch]
-                else:
-                    pt = ptw
 
+                pt = ptw
                 imgs = imgsw[..., buoy:buoy + evl_ch]
                 masks = masksw[..., buoy:buoy + evl_ch]
                 buoy += evl_ch
-
-                if args.thd:
-                    pt = rearrange(pt, 'b n d -> (b d) n')
-                    imgs = rearrange(imgs, 'b c h w d -> (b d) c h w ')
-                    masks = rearrange(masks, 'b c h w d -> (b d) c h w ')
-                    imgs = imgs.repeat(1,3,1,1)
-                    point_labels = torch.ones(imgs.size(0))
-
-                    imgs = torchvision.transforms.Resize((args.image_size,args.image_size))(imgs)
-                    masks = torchvision.transforms.Resize((args.out_size,args.out_size))(masks)
-
 
                 '''init'''
                 if hard:
