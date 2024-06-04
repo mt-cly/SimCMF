@@ -47,38 +47,47 @@ def get_network(args, net, proj_type):
 
 
 def set_trainable_params(net, net_name):
+    trainable_params_names = [k for k, v in net.named_parameters()]
     if net_name in ['sam_full_finetune']:
         pass
     elif net_name in ['sam_linear_probing']:
-        for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
+        for n, value in net.named_parameters():
             if all([not n.__contains__(i) for i in ["patch_embed", "pos_embed"]]):
+                trainable_params_names.remove(n)
                 value.requires_grad = False
     elif net_name in ['sam_lora']:
-        for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
+        for n, value in net.named_parameters():
             if "lora" not in n:
+                trainable_params_names.remove(n)
                 value.requires_grad = False
     elif net_name in ['sam_prompt']:
-        for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
+        for n, value in net.named_parameters():
             if "prompt" not in n:
+                trainable_params_names.remove(n)
                 value.requires_grad = False
     elif net_name in ['sam_prefix']:
-        for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
+        for n, value in net.named_parameters():
             if "prefix" not in n:
+                trainable_params_names.remove(n)
                 value.requires_grad = False
     elif net_name in ['sam_mlp_adapter']:
-        for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
+        for n, value in net.named_parameters():
             if "Adapter" not in n:
+                trainable_params_names.remove(n)
                 value.requires_grad = False
     else:
         raise NotImplementedError
 
     # ==== projector and deep_fusion_blocks always trainable =====
-    for n, value in net.image_encoder.named_parameters():
-        if "projector" in n:
+    for n, value in net.named_parameters():
+        if "image_encoder.projector" in n:
+            trainable_params_names.append(n)
             value.requires_grad = True
-        elif "deep_fusion_blocks" in n:
+        elif "image_encoder.deep_fusion_blocks" in n:
+            trainable_params_names.append(n)
             value.requires_grad = True
-        elif "final_block" in n:
+        elif "image_encoder.final_block" in n:
+            trainable_params_names.append(n)
             value.requires_grad = True
 
     # ===== prompt encoder is always frozen, even it is set to requires_grad=True, refer to forward function of  sam.
@@ -98,15 +107,16 @@ def set_trainable_params(net, net_name):
     # flops,params = profile(net, inputs=(img,pnt,))
     # print(flops/1e9, params)
 
+    return trainable_params_names
 
 def resume_weights(net, weights):
     if weights is not None:
-        print(f'=> resuming from {weights}')
+        print(f'=> resuming net weights from {weights}')
         assert os.path.exists(weights)
         checkpoint_file = os.path.join(weights)
         assert os.path.exists(checkpoint_file)
         checkpoint = torch.load(checkpoint_file, map_location='cpu')
-        net.load_state_dict(checkpoint['state_dict'], strict=True)
+        net.load_state_dict(checkpoint['state_dict'], strict=False)
         # args.path_helper = checkpoint['path_helper']
         # logger = create_logger(args.path_helper['log_path'])
         # print(f'=> loaded checkpoint {checkpoint_file} (epoch {start_epoch})')
@@ -116,7 +126,7 @@ def resume_weights(net, weights):
 def resume_optim_scheduler_epoch(optimizer, scheduler, weights):
     start_epoch = 0
     if weights is not None:
-        print(f'=> resuming from {weights}')
+        print(f'=> resuming optimizer & scheduler & epoch from {weights}')
         assert os.path.exists(weights)
         checkpoint_file = os.path.join(weights)
         assert os.path.exists(checkpoint_file)
@@ -128,8 +138,7 @@ def resume_optim_scheduler_epoch(optimizer, scheduler, weights):
     return optimizer, scheduler, start_epoch
 
 
-def save_checkpoint(states, is_best, output_dir,
-                    filename='checkpoint.pth'):
+def save_checkpoint(states, is_best, output_dir,filename):
     torch.save(states, os.path.join(output_dir, filename))
     if is_best:
         torch.save(states, os.path.join(output_dir, 'checkpoint_best.pth'))

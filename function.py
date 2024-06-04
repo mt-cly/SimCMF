@@ -2,7 +2,6 @@ import sys
 
 from torch import nn
 from utils import *
-from einops import rearrange
 from tqdm import tqdm
 from monai.losses import DiceCELoss
 import torch.distributed as dist
@@ -55,7 +54,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader, epoch, writer=None,
             '''vis images'''
             # if vis and (ind+1) % vis == 0:
             #     save_path = os.path.join(args.path_helper['sample_path'], f'train_{name}_epoch={epoch}.jpg')
-            #     vis_image(imgs, pred, masks, save_path, reverse=False, points=click_prompt[0][:, 0])
+            #     new_vis(imgs, pred, masks, save_path, reverse=False, points=click_prompt[0][:, 0])
             pbar.update()
 
     return epoch_loss/len(train_loader)
@@ -142,9 +141,9 @@ def validation_sam(args, val_loader, epoch, net: nn.Module):
                             tot += lossfunc(pred, mask_tmp)
 
                             '''vis images'''
-                            if args.vis and (ind+1) % args.vis == 0 and args.path_helper is not None:
-                                save_path = os.path.join(args.path_helper['sample_path'], f'test_{name_tmp}_epoch={epoch}_maskid={region_id}.jpg')
-                                new_vis(orig_img, pred, mask_tmp, save_path, new_modality, reverse=False, points=prompt_tmp[0][:, 0])
+                            # if args.vis and (ind+1) % args.vis == 0 and args.path_helper is not None:
+                            #     save_path = os.path.join(args.path_helper['sample_path'], f'test_{name_tmp}_epoch={epoch}_maskid={region_id}.jpg')
+                            #     new_vis(orig_img, pred, mask_tmp, save_path, new_modality, reverse=False, points=prompt_tmp[0][:, 0])
 
                             temp = eval_seg(pred, mask_tmp, threshold)
                             mix_res = tuple([sum(a) for a in zip(mix_res, temp)])

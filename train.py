@@ -27,7 +27,7 @@ def main(args, rank=0):
     net = resume_weights(net, args.weights)
 
     # set trainable parameters
-    set_trainable_params(net, net_name=args.net)
+    trainable_params_names = set_trainable_params(net, net_name=args.net)
 
     # put network to multi-gpu or single gpu
     # must use torch.cuda.set_device(rank) https://github.com/pytorch/pytorch/issues/21819#issuecomment-553310128
@@ -61,15 +61,17 @@ def main(args, rank=0):
                 logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
                 if eiou > best_iou:
                     best_iou = eiou
+                    full_state_dict = net.module.state_dict() if args.ddp else net.state_dict()
+                    saved_state_dict = {k: v for k, v in full_state_dict.items() if k in trainable_params_names}
                     save_checkpoint({
                         'epoch': epoch + 1,
                         'model': args.net,
-                        'state_dict': net.module.state_dict() if args.ddp else net.state_dict(),
+                        'state_dict': saved_state_dict,
                         'optimizer': optimizer.state_dict(),
                         'scheduler': scheduler.state_dict(),
                         'best_iou': best_iou,
                         'path_helper': args.path_helper,
-                    }, is_best=True, output_dir=args.path_helper['ckpt_path'], filename="best_checkpoint")
+                    }, is_best=True, output_dir=args.path_helper['ckpt_path'], filename=f"last_checkpoint.pth")
 
         # train
         net.train()

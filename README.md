@@ -4,7 +4,7 @@
 - Authors: [Chengyang Lei](https://chenyanglei.github.io/), [Liyi Chen](https://scholar.google.com/citations?user=nMev-10AAAAJ&hl=zh-CN), [Jun Cen](https://cen-jun.com/), [Xiao Chen](https://scholar.google.com/citations?user=swFOM1wAAAAJ&hl=en), [Zhen Lei](http://www.cbsr.ia.ac.cn/users/zlei/), [Felix Heide](https://www.cs.princeton.edu/~fheide/), [Ziwei Liu](https://liuziwei7.github.io/), [Qifeng Chen](https://cqf.io/), [Zhaoxiang Zhang](https://zhaoxiangzhang.net/) 
 
 ***
-🤗🤗🤗 SimMAT aims to transfer the ability of large RGB-based models to other modalities (e.g., Depth, Thermal, Polarization), which suffering from limited training data. For example,SimMAT enable the Segment Anything Model the ability to handle modality beyond RGB images.           
+SimMAT aims to transfer the ability of large RGB-based models to other modalities (e.g., Depth, Thermal, Polarization), which suffering from limited training data. For example,SimMAT enable the Segment Anything Model the ability to handle modality beyond RGB images.           
 <p align="center">
 <img src="resources/overview.png" width="95%">
 </p>
@@ -45,13 +45,12 @@ You can download one or all benchmark from given links, unzip and move them to t
      |--zju-rgbp
 ```
 
-You can simply execute `python train.py` followed by following optional arguments.
+You can simply execute `python train.py` followed by optional arguments.
 ```python
   -net         # specify the tuning methods. Options: {sam_full_finetune, sam_linear_probing, sam_mlp_adapter, sam_lora, sam_prompt, sam_prefix}
   -modality    # modality name. Options:{pgsnet_rgbp, pgsnet_p, rgbd, d, rgbhha, hha, nir, rgbnir, rgbt, t,zju-rgbp}
   -proj_type   # the pre-projection before foundation model Options: {simmat, baseline_a, baseline_b, baseline_c, baseline_d}
   -exp_name    # the experiment name
-  -vis         # if save visualization
   -val_freq    # interval epochs between each validation. Default: 5
   -b           # batch size. Default: 4
   -lr          # learning rate. It is suggested to set 3e-4 for PEFT, 3e-5 for Full Finetuning
