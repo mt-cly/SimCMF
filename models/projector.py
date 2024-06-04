@@ -309,10 +309,7 @@ class Pre_Callback_Post_Projector(nn.Module):
         pre_projector = None
         post_projector = None
 
-        if proj_type == 'medical_adapter':
-            pass
-
-        elif proj_type == 'baseline_0':
+        if proj_type == 'baseline_0':
             self.patch_embedding = nn.Conv2d(modal_chans, SAM_embedding_chans, 16, stride=16)
 
         elif proj_type == 'baseline_1':
@@ -365,30 +362,6 @@ class Pre_Callback_Post_Projector(nn.Module):
             self.fc = nn.Linear(modal_chans, 1, bias=False)
             nn.init.zeros_(self.fc.weight)
 
-
-        elif proj_type in ['vipt_shallow', 'vipt_deep']:
-            self.X_patch_embed = nn.Conv2d(3, SAM_embedding_chans, 16, stride=16)
-            self.fc = nn.Linear(modal_chans - 3, 1, bias=False)
-            # init
-            nn.init.zeros_(self.fc.weight)
-            if pretrained_state_dict:
-                patch_embed_weight = pretrained_state_dict['image_encoder.patch_embed.proj.weight']
-                patch_embed_bias = pretrained_state_dict['image_encoder.patch_embed.proj.bias']
-                self.X_patch_embed.load_state_dict({'weight': patch_embed_weight, 'bias': patch_embed_bias})
-            else:
-                # raise f'requiring pretrained sam to initialize when proj_type={proj_type}'
-                print('fail to fine pretrained patch embedding when build projector')
-
-        elif proj_type == 'cmx':
-            self.X_patch_embed = nn.Conv2d(3 if modal_chans - 3 == 1 else modal_chans - 3, SAM_embedding_chans, 16, stride=16)
-            if modal_chans-3 in [1,3] and pretrained_state_dict:
-                patch_embed_weight = pretrained_state_dict['image_encoder.patch_embed.proj.weight']
-                patch_embed_bias = pretrained_state_dict['image_encoder.patch_embed.proj.bias']
-                self.X_patch_embed.load_state_dict({'weight': patch_embed_weight, 'bias': patch_embed_bias})
-            else:
-                # raise f'requiring pretrained sam to initialize when proj_type={proj_type}'
-                print('fail to fine pretrained patch embedding when build projector')
-
         else:
             raise NotImplementedError
 
@@ -402,14 +375,9 @@ class Pre_Callback_Post_Projector(nn.Module):
             input: [bs, 3+x_dim, H, W]
             func: SAM_patch_embedding_layer
         '''
-        if self.proj_type == 'medical_adapter':
-            output = input.flatten(0, 1)[:, None]
-            output = output.repeat(1, 3, 1, 1)
-            output = func(output)
-            return output, None
 
 
-        elif self.proj_type == 'baseline_0':
+        if self.proj_type == 'baseline_0':
             output = self.patch_embedding(input)
             output = output.permute(0,2,3,1)
             return output, None
@@ -441,27 +409,6 @@ class Pre_Callback_Post_Projector(nn.Module):
             novel_embedding = self.fc(novel_embedding)[..., 0]
             output = old_embedding + novel_embedding
             return output, None
-
-        elif self.proj_type in ['vipt_shallow', 'vipt_deep']:
-            rgb, x = input[:, :3], input[:, 3:]
-            num_x = x.shape[1]
-            rgb_embedding = func(rgb)
-            x = x.unsqueeze(2).repeat(1, 1, 3, 1, 1)  # [bs, N, 3, h, w]
-            x = x.flatten(0, 1)
-            x_embedding = self.X_patch_embed(x)
-            _, c, h, w = x_embedding.shape
-            x_embedding = x_embedding.view(-1, num_x, c, h, w).permute(0, 3, 4, 2, 1).contiguous()  # [bs, h, w, C, N]
-            x_embedding = self.fc(x_embedding)[..., 0]
-            return rgb_embedding, x_embedding
-
-        elif self.proj_type == 'cmx':
-            rgb, x = input[:, :3], input[:, 3:]
-            if x.shape[1] == 1:
-                x = x.repeat(1,3,1,1)
-            rgb_embedding = func(rgb)
-            x_embedding = self.X_patch_embed(x)
-            x_embedding = x_embedding.permute(0, 2, 3, 1).contiguous()
-            return rgb_embedding, x_embedding
 
         else:
             output = self.pre_projector(input)

@@ -830,17 +830,6 @@ class NYUDv2_RGBD(Dataset):
         img_d = img_d * 255
         img_d = img_d.astype(np.uint8)
         img = np.concatenate((np.array(img_rgb), img_d[:,:,None]), axis=-1)
-        # img = img_rgb
-        # img = img_d
-        # img = mpl.colormaps['plasma'](d)*255
-        # img = mpl.colormaps['viridis'](d)*255
-        # img = mpl.colormaps['gray'](d)*255
-        # img = mpl.colormaps['cividis'](d)*255
-        # img = mpl.colormaps['Purples'](d)*255
-        # plt.figure()
-        # plt.imshow(img)
-        # plt.savefig('/mnt/lustre/jcen/Medical-SAM-Adapter/vis/d.jpg')
-        # img = Image.fromarray(np.uint8(img[:,:,:-1]))
 
         gt = Image.open(gt_path).convert('I')
 

@@ -33,9 +33,6 @@ def get_network(args, net, proj_type):
     elif net == 'sam_mlp_adapter':
         from models.sam_mlp_adapter import sam_model_registry
         net = sam_model_registry['vit_b'](args, **params)
-    elif net == 'sam_medical_adapter':
-        from models.sam_medical_adapter import sam_model_registry
-        net = sam_model_registry['vit_b'](args, **params)
     elif net == 'sam_lora':
         from models.sam_lora import sam_model_registry
         net = sam_model_registry['vit_b'](args, **params)
@@ -70,7 +67,7 @@ def set_trainable_params(net, net_name):
         for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
             if "prefix" not in n:
                 value.requires_grad = False
-    elif net_name in ['sam_medical_adapter', 'sam_mlp_adapter']:
+    elif net_name in ['sam_mlp_adapter']:
         for n, value in chain(net.image_encoder.named_parameters(), net.mask_decoder.named_parameters()):
             if "Adapter" not in n:
                 value.requires_grad = False
@@ -217,6 +214,7 @@ class DiceCoeff(Function):
             grad_target = None
 
         return grad_input, grad_target
+
 def dice_coeff(input, target):
     """Dice coeff for batches"""
     if input.is_cuda:
@@ -295,7 +293,7 @@ def random_click(mask, point_labels = 1, region_id=1, middle=False):
         return indices[np.random.randint(len(indices))]
 
 
-def generate_click_prompt(img, msk, pt_label = 1):
+def generate_click_prompt(img, msk, pt_label=1):
     # return: prompt, prompt mask
     pt_list = []
     msk_list = []
