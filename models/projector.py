@@ -302,22 +302,28 @@ class Block(nn.Module):
 
 class Pre_Callback_Post_Projector(nn.Module):
     def __init__(self, modal_chans, SAM_embedding_chans, proj_type=0, pretrained_state_dict=None):
-        self.img_id = 0
+        uniform_init = True
+        inplane = 4
         super(Pre_Callback_Post_Projector, self).__init__()
-        HIDDEN_DIM = 64
         self.SAM_embedding_chans = SAM_embedding_chans
-        pre_projector = None
-        post_projector = None
+        self.proj_type = proj_type
 
-        if proj_type == 'baseline_0':
+        if proj_type == 'baseline_a':
+            self.zip_rgbx = nn.Identity()
             self.patch_embedding = nn.Conv2d(modal_chans, SAM_embedding_chans, 16, stride=16)
 
-        elif proj_type == 'baseline_1':
-            self.zip_rgbx = nn.Conv2d(modal_chans, 3, 1, 1)
+        elif proj_type == 'baseline_b':
+            self.zip_rgbx = nn.Sequential(nn.Conv2d(modal_chans, modal_chans * inplane, 3, 1,padding=1),
+                                          nn.ReLU(),
+                                          nn.Conv2d(modal_chans*inplane, 3, 1, 1, padding=1)
+                                          )
             self.patch_embedding = nn.Conv2d(3, SAM_embedding_chans, 16, stride=16)
             # init
-            nn.init.uniform_(self.zip_rgbx.weight)
-            nn.init.zeros_(self.zip_rgbx.bias)
+            if uniform_init:
+                nn.init.uniform_(self.zip_rgbx[0].weight)
+                nn.init.zeros_(self.zip_rgbx[0].bias)
+                nn.init.uniform_(self.zip_rgbx[2].weight)
+                nn.init.zeros_(self.zip_rgbx[2].bias)
             if pretrained_state_dict:  # init with pretrained weight. [768,3,16,16]
                 patch_embed_weight = pretrained_state_dict['image_encoder.patch_embed.proj.weight']
                 patch_embed_bias = pretrained_state_dict['image_encoder.patch_embed.proj.bias']
@@ -326,26 +332,40 @@ class Pre_Callback_Post_Projector(nn.Module):
                 # raise f'requiring pretrained sam to initialize when proj_type={proj_type}'
                 print('fail to fine pretrained patch embedding when build projector')
 
-        elif proj_type == 'baseline_2':
+        elif proj_type == 'baseline_c':
             self.zip_rgbx = nn.Conv2d(modal_chans, 3, 1, 1)
-            # patch_embedding is zero init
-            # warp with list to prevent the parameter registration
-            self.patch_embedding = [nn.Conv2d(3, SAM_embedding_chans, 16, stride=16)]
+            self.patch_embedding = nn.Conv2d(3, SAM_embedding_chans, 16, stride=16)
             # init
-            nn.init.uniform_(self.zip_rgbx.weight)
-            nn.init.zeros_(self.zip_rgbx.bias)
+            if uniform_init:
+                nn.init.uniform_(self.zip_rgbx.weight)
+                nn.init.zeros_(self.zip_rgbx.bias)
+            if pretrained_state_dict:  # init with pretrained weight. [768,3,16,16]
+                patch_embed_weight = pretrained_state_dict['image_encoder.patch_embed.proj.weight']
+                patch_embed_bias = pretrained_state_dict['image_encoder.patch_embed.proj.bias']
+                self.patch_embedding.load_state_dict({'weight': patch_embed_weight, 'bias': patch_embed_bias})
+            else:
+                # raise f'requiring pretrained sam to initialize when proj_type={proj_type}'
+                print('fail to fine pretrained patch embedding when build projector')
+
+        elif proj_type == 'baseline_d':
+            self.zip_rgbx = nn.Conv2d(modal_chans, 3, 1, 1)
+            # init
+            if uniform_init:
+                nn.init.uniform_(self.zip_rgbx.weight)
+                nn.init.zeros_(self.zip_rgbx.bias)
 
         elif proj_type =='simmat':
-            self.moe = nn.Sequential(nn.Conv2d(modal_chans, modal_chans*4, 3, 1, padding=1),
-                                     LayerNorm2d(modal_chans*4),
+            self.moe = nn.Sequential(nn.Conv2d(modal_chans, modal_chans*inplane, 3, 1, padding=1),
+                                     LayerNorm2d(modal_chans*inplane),
                                      nn.ReLU(),
-                                     nn.Conv2d(modal_chans * 4, modal_chans, 3, 1, padding=1),
+                                     nn.Conv2d(modal_chans * inplane, modal_chans, 3, 1, padding=1),
                                      nn.AdaptiveAvgPool2d((1, 1))
                                      )
             # preserve old from rgbx
             self.zip_rgbx = nn.Conv2d(modal_chans, 3, 1, 1)
-            nn.init.uniform_(self.zip_rgbx.weight)
-            nn.init.zeros_(self.zip_rgbx.bias)
+            if uniform_init:
+                nn.init.uniform_(self.zip_rgbx.weight)
+                nn.init.zeros_(self.zip_rgbx.bias)
             # learn novel from rgbx
             self.group_patch_embedding = nn.ModuleList()
             for _ in range(modal_chans):
@@ -365,9 +385,6 @@ class Pre_Callback_Post_Projector(nn.Module):
         else:
             raise NotImplementedError
 
-        self.proj_type = proj_type
-        self.pre_projector = pre_projector
-        self.post_projector = post_projector
 
     def forward(self, input, func):
         '''
@@ -377,22 +394,15 @@ class Pre_Callback_Post_Projector(nn.Module):
         '''
 
 
-        if self.proj_type == 'baseline_0':
-            output = self.patch_embedding(input)
-            output = output.permute(0,2,3,1)
-            return output, None
-
-        elif self.proj_type == 'baseline_1':
+        if self.proj_type in ['baseline_a', 'baseline_b', 'baseline_c']:
             output = self.zip_rgbx(input)
             output = self.patch_embedding(output)
             output = output.permute(0,2,3,1)
             return output, None
 
-        elif self.proj_type == 'baseline_2':
-            unregistered_patch_embedding = self.patch_embedding[0].to(input.device)
+        elif self.proj_type == 'baseline_d':
             output = self.zip_rgbx(input)
-            output = unregistered_patch_embedding(output)
-            output = output.permute(0,2,3,1)
+            output = func(output)
             return output, None
 
 
@@ -411,10 +421,7 @@ class Pre_Callback_Post_Projector(nn.Module):
             return output, None
 
         else:
-            output = self.pre_projector(input)
-            output = func(output)
-            output = self.post_projector(output)
-            return output, None
+            raise  NotImplementedError
 
 
 

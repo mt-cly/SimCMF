@@ -1,7 +1,7 @@
 import argparse
 
 def valid_type(value):
-    choices = ['baseline_0', 'baseline_1', 'baseline_2', 'simmat']
+    choices = ['baseline_a', 'baseline_b', 'baseline_c', 'baseline_d', 'simmat']
     if value in choices or value.__contains__('preconv') or value.__contains__('preattn'):
         return value
     raise 'wrong -proj_type'
