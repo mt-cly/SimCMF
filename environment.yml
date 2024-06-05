@@ -40,9 +40,9 @@ dependencies:
       - requests==2.32.3
       - six==1.16.0
       - tensorboardx==2.6.2.2
-      - torch==1.11.0+cu113
-      - torchaudio==0.11.0+cu113
-      - torchvision==0.12.0+cu113
+      - torch==1.11.0
+      - torchaudio==0.11.0
+      - torchvision==0.12.0
       - tqdm==4.66.4
       - typing-extensions==4.12.1
       - tzdata==2024.1

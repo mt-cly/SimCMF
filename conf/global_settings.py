@@ -9,9 +9,6 @@ EPOCH = 51
 # tensorboard log dir
 LOG_DIR = 'runs'
 
-# save weights file per SAVE_EPOCH epoch
-SAVE_EPOCH = 10
-
 modality_channel_map = {'zju-rgbp': 9, 'pgsnet_rgbp': 9, 'pgsnet_p': 6, 'rgbd': 4, 'd': 1, 'rgbhha': 6, 'hha': 3,
                         'nir': 1, 'rgbnir': 4, 'rgbt': 4, 'rgbt_500': 4, 't': 1, 't_500': 1}
 datasets_folder = './data'

@@ -150,7 +150,7 @@ def get_dataloader(args):
 
     elif args.modality == "pgsnet_rgbp":
         pgsnet_train_dataset = PGSNet_RGBP(args, data_path, transform=transform_train,
-                                      transform_msk=transform_train_seg, mode='train', ratio=args.ratio)
+                                      transform_msk=transform_train_seg, mode='train')
         pgsnet_test_dataset = PGSNet_RGBP(args, data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
@@ -351,7 +351,7 @@ class ZJU_RGBP(Dataset):
 
 
 class PGSNet_RGBP(Dataset):
-    def __init__(self, args, data_path, transform=None, transform_msk=None, mode='train', prompt='click', plane=False, ratio=1.):
+    def __init__(self, args, data_path, transform=None, transform_msk=None, mode='train', prompt='click', plane=False):
         # mean/std statistics  of each modality channel
         self.mean = torch.Tensor([0.20545432, 0.21862635, 0.15604725, 0.47199312, 0.4637443, 0.48603472, 0.102636375, 0.10431647, 0.11925355])[:,None,None]
         self.std = torch.Tensor([0.19210099, 0.20711783, 0.18405455, 0.28202084, 0.28334478, 0.25937688, 0.11682395, 0.118849464, 0.12313089])[:,None,None]
@@ -456,7 +456,7 @@ class PGSNet_RGBP(Dataset):
         }
 
 class PGSNet_P(Dataset):
-    def __init__(self, args, data_path, transform=None, transform_msk=None, mode='train', prompt='click', plane=False, ratio=1.):
+    def __init__(self, args, data_path, transform=None, transform_msk=None, mode='train', prompt='click', plane=False):
         # mean/std statistics  of each modality channel
         self.mean = torch.Tensor([0.47199312, 0.4637443, 0.48603472, 0.102636375, 0.10431647, 0.11925355])[:,None,None]
         self.std = torch.Tensor([0.28202084, 0.28334478, 0.25937688, 0.11682395, 0.118849464, 0.12313089])[:,None,None]
