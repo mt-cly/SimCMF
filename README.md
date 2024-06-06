@@ -15,8 +15,9 @@ Firstly, prepare the project and create the environment.
 ```
 git clone https://github.com/mt-cly/SimMAT
 cd SimMAT
-conda env create -f environment.yml
+conda create -n simmat python=3.10
 conda activate simmat
+pip install -r requirements.txt
 # pretrained SAM-B 
 wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
 mv sam_vit_b_01ec64.pth checkpoint/sam 
@@ -24,13 +25,13 @@ mv sam_vit_b_01ec64.pth checkpoint/sam
 
 We provide segmentation benchmark to study the segmentation performance in various modalities.
 
-| Dataset                    | Supporting Modalities    | Link                                                                                                                                                 |
-|----------------------------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| IVRG_RGBNIR  | Depth, Depth+RGB       | [download](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/ESDT5HdpqytGqblw7dbWcWQBEKkDHcs_vZokddOoUGtTrA?e=hvcmS4) |
-| RGB-Thermal-Glass            | Thermal, Thermal+RGB   | [download](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EZxLLauNnjJAkPHAr-_IZCEBbCl80g54ZnN8tuH5iriQdg?e=zArl7G) |
-|NYUDepthv2| Depth, HHA, Depth+RGB, HHA+RGB| [download](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/ESnyZODEalVNqCdN-AcEIwUBJZs_8-CP4ABTVkcncYiSSQ?e=FUMUge) | 
-|pgsnet | AOLP+DOLP, AOLP+DOLP+RGB| [download](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EftFWER7U_VKjyHE8CKZQnEBy4BgJCPuQVLLeoUXFfhq1g?e=wt0mgH)                                                                                                                                         |
-|zju-rgbp|  AOLP+DOLP, AOLP+DOLP+RGB | [download](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EdXaBm7dwx5GnDoqnPYm8-IBTsIrwaHRTN4y-lPa2L_qDw?e=bP40CX)                                                                                                                                         |
+| Dataset                    | Supporting Modalities          | Link                                                                                                                                                        |
+|----------------------------|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| IVRG_RGBNIR  | NIR, NIR+RGB                   | [download(1.0G)](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/ESDT5HdpqytGqblw7dbWcWQBEKkDHcs_vZokddOoUGtTrA?e=hvcmS4)  |
+| RGB-Thermal-Glass            | Thermal, Thermal+RGB           | [download(3.0G)](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EZxLLauNnjJAkPHAr-_IZCEBbCl80g54ZnN8tuH5iriQdg?e=zArl7G)  |
+|NYUDepthv2| Depth, HHA, Depth+RGB, HHA+RGB | [download(1.6G)](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/ESnyZODEalVNqCdN-AcEIwUBJZs_8-CP4ABTVkcncYiSSQ?e=FUMUge)  | 
+|pgsnet | AOLP+DOLP, AOLP+DOLP+RGB       | [download(15.5G)](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EftFWER7U_VKjyHE8CKZQnEBy4BgJCPuQVLLeoUXFfhq1g?e=wt0mgH) |
+|zju-rgbp| AOLP+DOLP, AOLP+DOLP+RGB       | [download(0.3G)](https://connectpolyu-my.sharepoint.com/:u:/g/personal/21118917r_connect_polyu_hk/EdXaBm7dwx5GnDoqnPYm8-IBTsIrwaHRTN4y-lPa2L_qDw?e=bP40CX)  |
 
 
 You can download one or all benchmark from given links, unzip and move them to the `data` folder, the file structure should be as follows. 
@@ -58,10 +59,19 @@ You can simply execute `python train.py` followed by optional arguments.
 ```
 If you want to use DDP, just add extra `-ddp` to the command.
 
-Following is an example to adapt SAM-B to modality of AOLP+DOLP+RGB with proposed SimMAT:
-```python
-python train.py -net sam_lora -modality pgsnet_rgbp -proj_type simmat -exp_name exps -lr 3e-4 -ddp
+We provide an example command to perform adapting SAM to NIR modality in `train.sh`.
+```shell
+sh train.sh
 ```
+
+
+[//]: # (Following is an example to adapt SAM-B to modality of AOLP+DOLP+RGB with proposed SimMAT:)
+
+[//]: # (```python)
+
+[//]: # (python train.py -net sam_lora -modality pgsnet_rgbp -proj_type simmat -exp_name exps -lr 3e-4 -ddp)
+
+[//]: # (```)
 
 
 ## Citation
