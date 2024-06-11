@@ -179,7 +179,7 @@ def get_dataloader(args):
 
     elif args.modality == 'rgbd' or args.modality == 'rgbhha':
         nyudv2_train_dataset = NYUDv2_RGBD(data_path, transform=transform_train, transform_msk=transform_train_seg,
-                                      mode='train', samples_per=args.samples_per)
+                                      mode='train')
         nyudv2_test_dataset = NYUDv2_RGBD(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
@@ -192,7 +192,7 @@ def get_dataloader(args):
 
     elif args.modality == 'd':
         nyudv2_train_dataset = NYUDv2_D(data_path, transform=transform_train, transform_msk=transform_train_seg,
-                                      mode='train', samples_per=args.samples_per)
+                                      mode='train')
         nyudv2_test_dataset = NYUDv2_D(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
@@ -206,7 +206,7 @@ def get_dataloader(args):
 
     elif args.modality == 'hha':
         nyudv2_train_dataset = NYUDv2_HHA(data_path, transform=transform_train, transform_msk=transform_train_seg,
-                                      mode='train', samples_per=args.samples_per, )
+                                      mode='train')
         nyudv2_test_dataset = NYUDv2_HHA(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
@@ -219,7 +219,7 @@ def get_dataloader(args):
 
     elif args.modality == 'rgbhha':
         nyudv2_train_dataset = NYUDv2_RGBHHA(data_path, transform=transform_train, transform_msk=transform_train_seg,
-                                      mode='train', samples_per=args.samples_per, )
+                                      mode='train' )
         nyudv2_test_dataset = NYUDv2_RGBHHA(data_path, transform=transform_test, transform_msk=transform_test_seg,
                                      mode='test')
         train_sampler, test_sampler = None, None
