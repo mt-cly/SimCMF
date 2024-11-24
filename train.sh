@@ -1,3 +1,4 @@
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 # adapt SAM to RGB+NIR modality with lora PEFT
 net=sam_lora
 modality=rgbnir

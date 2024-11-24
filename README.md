@@ -78,8 +78,8 @@ sh train.sh
 
 ```
 @article{lei2024simcmf,
-  title={SimCMF: Exploring Transferability from Vision Foundation Models to Any Image Modality},
-  author={Lei, Chengyang and Chen, Liyi and Cen, Jun and Chen, Xiao and Lei, Zhen and Heide, Felix and Liu, Ziwei and Chen, Qifeng and Zhang, Zhaoxiang},
+  title={SimCMF: A Simple Cross-modal Fine-tuning Strategy from Vision Foundation Models to Any Imaging Modality},
+  author={Lei, Chengyang and Chen, Liyi and Cen, Jun and Chen, Xiao and Lei, Zhen and Heide, Felix and Chen, Qifeng and Zhang, Zhaoxiang},
   year={2024}
 }
 ```
