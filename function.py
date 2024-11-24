@@ -25,7 +25,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader, epoch, writer=None,
     # # =================================================
 
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch}', unit='img') as pbar:
-        for pack in train_loader:
+        for iter, pack in enumerate(train_loader):
             imgs = pack['image'].to(dtype = torch.float32).cuda()
             masks = pack['label'].to(dtype = torch.float32).cuda()
 
@@ -52,15 +52,15 @@ def train_sam(args, net: nn.Module, optimizer, train_loader, epoch, writer=None,
             optimizer.zero_grad()
 
             '''vis images'''
-            # if vis and (ind+1) % vis == 0:
-            #     save_path = os.path.join(args.path_helper['sample_path'], f'train_{name}_epoch={epoch}.jpg')
-            #     new_vis(imgs, pred, masks, save_path, reverse=False, points=click_prompt[0][:, 0])
+            if vis and (iter+1) % vis == 0:
+                save_path = os.path.join(args.path_helper['sample_path'], f'train_{name}_epoch={epoch}.jpg')
+                new_vis(args.modality, pack['orig_img'], pred, masks, save_path, pack['new_modality'], reverse=False, points=click_prompt[0][:, 0])
             pbar.update()
 
     return epoch_loss/len(train_loader)
 
 
-def validation_sam(args, val_loader, epoch, net: nn.Module):
+def validation_sam(args, val_loader, epoch, net: nn.Module , vis):
      # eval mode
     net.eval()
     net = net.module if args.ddp else net
@@ -141,9 +141,9 @@ def validation_sam(args, val_loader, epoch, net: nn.Module):
                             tot += lossfunc(pred, mask_tmp)
 
                             '''vis images'''
-                            # if args.vis and (ind+1) % args.vis == 0 and args.path_helper is not None:
-                            #     save_path = os.path.join(args.path_helper['sample_path'], f'test_{name_tmp}_epoch={epoch}_maskid={region_id}.jpg')
-                            #     new_vis(orig_img, pred, mask_tmp, save_path, new_modality, reverse=False, points=prompt_tmp[0][:, 0])
+                            if vis and (bs_id+1) % vis == 0:
+                                save_path = os.path.join(args.path_helper['sample_path'], f'test_{name_tmp}_epoch={epoch}_maskid={region_id}.jpg')
+                                new_vis(args.modality, orig_img, pred, mask_tmp, save_path, new_modality, reverse=False, points=prompt_tmp[0][:, 0])
 
                             temp = eval_seg(pred, mask_tmp, threshold)
                             mix_res = tuple([sum(a) for a in zip(mix_res, temp)])

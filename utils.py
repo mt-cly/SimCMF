@@ -19,11 +19,11 @@ def get_network(args, net, proj_type):
     """ return given network
     """
     in_chans = modality_channel_map[args.modality]
-    pretrained_state_dict = torch.load(args.sam_ckpt) if args.sam_ckpt else None
+    pretrained_state_dict = torch.load(args.sam_ckpt) if args.sam_ckpt and len(args.sam_ckpt)>0 else None
     params = {'checkpoint': args.sam_ckpt,
               'in_chans': in_chans,
               'proj_type': proj_type,
-              'pretrained_state_dict':pretrained_state_dict}
+              'pretrained_state_dict': pretrained_state_dict}
 
     if net in ['sam_full_finetune', 'sam_linear_probing']:
         from models.sam_naive import sam_model_registry
@@ -35,7 +35,7 @@ def get_network(args, net, proj_type):
         from models.sam_lora import sam_model_registry
         net = sam_model_registry['vit_b'](args, **params)
     elif net == 'sam_prompt':
-        from models.sam_prompt import  sam_model_registry
+        from models.sam_prompt import sam_model_registry
         net = sam_model_registry['vit_b'](args, **params)
     elif net == 'sam_prefix':
         from models.sam_prefix import sam_model_registry
@@ -338,7 +338,7 @@ def generate_click_prompt(img, msk, pt_label=1):
 
     return img, pt, msk #[b, 2, d], [b, c, h, w, d]
 
-def visal_click(img, click):
+def visal_click(modality, img, click):
     '''
     img: [H, W, 3] or [H, W, 1] \in [0, 255]
     mask: [H, W, 1] \in {0,1}
@@ -360,30 +360,36 @@ def visal_click(img, click):
             if x+delta_x < 0 or x+delta_x >= w:
                 continue
             click_map[y+delta_y, x+delta_x, 0] = 1
-    map = visual_mask(img, click_map)
+    map = visual_mask(modality, img, click_map)
     return map
 
 
-def visual_mask(img, mask):
+def visual_mask(modality, img, mask):
     '''
     img: [H, W, 3] or [H, W, 1] \in [0, 255]
     mask: [H, W, 1] \in {0,1}
     '''
-    palette = np.array([230, 170, 143])
+    palette_dict = {'hha':[255, 255, 255],
+                    'rgbhha': [255, 255, 255],
+                    'd': [230, 170, 143],
+                    'rgbd': [230, 170, 143],
+                    'nir': [0, 255, 255],
+                    'rgbnir': [0, 255, 255],
+                    }
+    palette = np.array(palette_dict[modality])
     if type(img) == torch.Tensor:
         img = img.cpu().numpy()
     if type(mask) == torch.Tensor:
         mask = mask.cpu().numpy()
     if img.shape[-1] == 1:
         img = np.repeat(img, 3, -1)
-        img = cv2.applyColorMap(img.numpyastype(np.uint8), 7)
-    alpha = 0.6
+    alpha = 0.4
     color = np.ones_like(mask) * palette[None, None]
     map = img * (mask==0) + (img * alpha + color * (1-alpha)) * (mask == 1)
     return map
 
 
-def new_vis(imgs, pred_masks, gt_masks, save_path, new_modality, reverse = False, points = None):
+def new_vis(modality, imgs, pred_masks, gt_masks, save_path, new_modality, reverse = False, points = None):
     """
     params:
         imgs: [bs, c, h, w], where c is the channel of modality. for example, 3 for rgb, 9 for polarization
@@ -397,22 +403,25 @@ def new_vis(imgs, pred_masks, gt_masks, save_path, new_modality, reverse = False
     imgs = torchvision.transforms.Resize((h, w))(imgs)
     img = imgs.permute(0,2,3,1)[0]
     new_modality = torchvision.transforms.Resize((h, w))(new_modality)
-    new_modality_vis = new_modality.permute(0,2,3,1)[0]
+    new_modality_vis = new_modality.permute(0,2,3,1)[0].cpu().numpy()*255
+    if modality == 'd':
+        new_modality_vis = cv2.applyColorMap((new_modality_vis).astype(np.uint8), 4)
+    elif modality == 'hha':
+        new_modality_vis = np.flip(new_modality_vis, -1)
+    # new_modality_vis = (new_modality_vis*255).astype(np.uint8)
     pred_mask = pred_masks.permute(0,2,3,1)[0]
     gt_mask = gt_masks.permute(0,2,3,1)[0]
-    vis_pred = visual_mask(img , pred_mask>0)
-    vis_gt = visual_mask(img, gt_mask)
+    vis_pred = visual_mask(modality, new_modality_vis , pred_mask>0)
+    vis_gt = visual_mask(modality, new_modality_vis, gt_mask)
     click = np.round(points.cpu()/4).to(dtype = torch.int)[0] # 1024 in 256 out
-    vis_click = visal_click(img, click)
+    vis_click = visal_click(modality, new_modality_vis, click)
     cv2.imwrite(save_path.replace('.jpg', '_pred.jpg'), vis_pred)
     cv2.imwrite(save_path.replace('.jpg', '_gt.jpg'), vis_gt)
     cv2.imwrite(save_path.replace('.jpg', '_gt_mask.jpg'), 255 * gt_mask.cpu().numpy())    
-    cv2.imwrite(save_path.replace('.jpg', '_pred_mask.jpg'),255 *  (pred_mask>0).long().cpu().numpy())
+    cv2.imwrite(save_path.replace('.jpg', '_pred_mask.jpg'),255 * (pred_mask>0).long().cpu().numpy())
     cv2.imwrite(save_path.replace('.jpg', '_rgb.jpg'), img.cpu().numpy())
-    cv2.imwrite(save_path.replace('.jpg', '_new_modality.jpg'), new_modality_vis.cpu().numpy())
+    cv2.imwrite(save_path.replace('.jpg', '_new_modality.jpg'), new_modality_vis)
     cv2.imwrite(save_path.replace('.jpg', '_click.jpg'), vis_click)
-    cv2.imwrite(save_path.replace('.jpg', '_click_pred.jpg'),  0.5 * vis_click + 0.5 * vis_pred)
-
-    new_modality_vis = new_modality_vis.cpu().numpy()
-    new_modality_vis = cv2.applyColorMap(new_modality_vis.astype(np.uint8), 7)
-    cv2.imwrite(save_path.replace('.jpg', '_newmodality.jpg'), new_modality_vis)
+    #
+    # new_modality_vis = new_modality_vis.cpu().numpy()
+    # cv2.imwrite(save_path.replace('.jpg', '_newmodality.jpg'), new_modality_vis)

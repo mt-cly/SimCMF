@@ -54,7 +54,7 @@ def main(args, rank=0):
         # eval
         net.eval()
         if epoch % args.val_freq == 0 or epoch == settings.EPOCH - 1:
-            tol, eiou, edice = function.validation_sam(args, test_dataloader, epoch, net)
+            tol, eiou, edice = function.validation_sam(args, test_dataloader, epoch, net, vis=args.vis)
 
             # print & save
             if rank == 0:
@@ -99,9 +99,16 @@ def ddp_main(rank, args, world_size):
     main(args, rank=rank)
     cleanup()
 
+def set_seed(seed):
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(0)
+    torch.use_deterministic_algorithms(True)
+
 
 if __name__ == '__main__':
     args = cfg.parse_args()
+    set_seed(args.seed)
     if args.ddp:
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = str(12345+random.randint(0,1000))

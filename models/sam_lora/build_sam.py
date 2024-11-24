@@ -117,7 +117,7 @@ def _build_sam(
         pixel_std=[58.395, 57.12, 57.375],
     )
     sam.eval()
-    if checkpoint is not None:
+    if checkpoint and len(checkpoint) > 0:
         checkpoint = Path(checkpoint)
         if checkpoint.name == "sam_vit_b_01ec64.pth" and not checkpoint.exists():
             cmd = input("Download sam_vit_b_01ec64.pth from facebook AI? [y]/n: ")
@@ -159,6 +159,6 @@ def _build_sam(
                     print(f'the {name} in pretrained checkpoints mismatch with SAM model, is discard.')
                     state_dict.pop(name)
 
-        sam.load_state_dict(state_dict, strict=False)
-        print(f'loading {checkpoint} success')
+        result = sam.load_state_dict(state_dict, strict=False)
+        print(f'loading {checkpoint} with {result}')
     return sam

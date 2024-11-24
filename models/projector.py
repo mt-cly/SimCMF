@@ -4,6 +4,7 @@ import torch.nn as nn
 import math
 import torch.nn.functional as F
 from typing import Optional, Tuple, Type
+import re
 
 def convt_bn_relu(ch_in, ch_out, kernel, stride=1, padding=0, output_padding=0,
                   bn=True, relu=True):
@@ -301,8 +302,8 @@ class Block(nn.Module):
 
 
 class Pre_Callback_Post_Projector(nn.Module):
-    def __init__(self, modal_chans, SAM_embedding_chans, proj_type=0, pretrained_state_dict=None):
-        uniform_init = True
+    def __init__(self, uniform_init, modal_chans, SAM_embedding_chans, proj_type=0, pretrained_state_dict=None):
+        uniform_init = uniform_init
         inplane = 4
         super(Pre_Callback_Post_Projector, self).__init__()
         self.SAM_embedding_chans = SAM_embedding_chans
@@ -382,6 +383,36 @@ class Pre_Callback_Post_Projector(nn.Module):
             self.fc = nn.Linear(modal_chans, 1, bias=False)
             nn.init.zeros_(self.fc.weight)
 
+        elif proj_type.__contains__('preconv'):
+            conf = proj_type.split('preconv')[1]
+            kernel_size = int(conf.split('k')[1].split('n')[0])
+            num_layer = int(conf.split('n')[1].split('d')[0])
+            dim = int(conf.split('d')[1])
+            if num_layer == 1:
+                zip_proj = [nn.Conv2d(modal_chans, 3, kernel_size, 1, padding=kernel_size // 2)]
+            else:
+                zip_proj = [nn.Conv2d(modal_chans, dim, kernel_size, 1, padding=kernel_size//2)]
+                for i in range(num_layer-2):
+                    zip_proj.append(nn.Conv2d(dim, dim, kernel_size, 1, padding=kernel_size//2))
+                    zip_proj.append(nn.ReLU())
+                zip_proj.append(nn.Conv2d(dim, 3, 1, 1))
+            self.zip_proj = nn.Sequential(*zip_proj)
+
+        elif proj_type.__contains__('preattn'):
+            conf = proj_type.split('preattn')[1]
+            patch_size = int(conf.split('p')[1].split('n')[0])
+            num_layer = int(conf.split('n')[1].split('d')[0])
+            dim = int(conf.split('d')[1])
+            self.pre_attn_patch_size = patch_size
+            zip_proj = [nn.Conv2d(modal_chans, dim, patch_size, patch_size)]
+            for i in range(num_layer):
+                zip_proj.append(Block(None, dim, num_heads=8))
+            zip_proj.append(nn.Linear(dim, patch_size*patch_size*3))
+            self.zip_proj = nn.Sequential(*zip_proj)
+
+        elif proj_type == 'zeroshot':
+            pass
+
         else:
             raise NotImplementedError
 
@@ -418,10 +449,34 @@ class Pre_Callback_Post_Projector(nn.Module):
             novel_embedding = novel_embedding.permute(1, 3, 4, 2, 0)  # [bs, h, w, C, N]
             novel_embedding = self.fc(novel_embedding)[..., 0]
             output = old_embedding + novel_embedding
+            # print(f'weights is {weights}')
+            # print(f'old norm vs novel norm:{old_embedding.norm()} vs {novel_embedding.norm()}')
             return output, None
 
+        elif self.proj_type.__contains__('preconv'):
+            rgb_embedding = self.zip_proj(input)
+            rgb_embedding = func(rgb_embedding)
+            return rgb_embedding, None
+
+        elif self.proj_type.__contains__('preattn'):
+            b, _, h, w = input.shape
+            rgb_embedding = self.zip_proj[0](input).permute(0,2,3,1)
+            rgb_embedding = self.zip_proj[1:](rgb_embedding)
+            b, c = rgb_embedding.shape[:2]
+            rgb_embedding = rgb_embedding.reshape(b, h//self.pre_attn_patch_size, w//self.pre_attn_patch_size, self.pre_attn_patch_size , self.pre_attn_patch_size, 3)
+            rgb_embedding = rgb_embedding.reshape(b, h, w, 3).permute(0,3,1,2)
+            rgb_embedding = func(rgb_embedding)
+            return rgb_embedding, None
+
+        elif self.proj_type == 'zeroshot':
+            if input.shape[1]<3:
+                input = F.pad(input,(0,0,0,0,0,3), mode='replicate')
+            rgb_embedding = func(input[:,:3])
+            return rgb_embedding, None
+
+
         else:
-            raise  NotImplementedError
+            raise NotImplementedError
 
 
 

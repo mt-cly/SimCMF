@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import math
 from models.projector import Pre_Callback_Post_Projector
 from models.deep_fusion import get_deep_fusion_blocks
+from models.final_block import  get_final_block
 from typing import Optional, Tuple, Type
 
 from .common import LayerNorm2d, MLPBlock
@@ -63,10 +64,12 @@ class ImageEncoderViT(nn.Module):
         self.args = args
         self.proj_type = kwargs['proj_type']
         # create projector and layer-wise deep_fusion_blocks
-        self.projector = Pre_Callback_Post_Projector(modal_chans=in_chans,
+        self.projector = Pre_Callback_Post_Projector(uniform_init=args.uniformInit, modal_chans=in_chans,
                                                     SAM_embedding_chans=embed_dim,
                                                     **kwargs)
-        self.deep_fusion_blocks = get_deep_fusion_blocks(num_layers=depth, SAM_embedding_chans=embed_dim, proj_type=self.proj_type)
+        self.deep_fusion_blocks = get_deep_fusion_blocks(num_layers=depth, SAM_embedding_chans=embed_dim, proj_type=self.proj_type, pretrain=kwargs['pretrained_state_dict'])
+        self.final_block = get_final_block(SAM_embedding_chans=embed_dim, proj_type=self.proj_type)
+        self.global_attn_indexes = global_attn_indexes
 
         # Both in pre_proj and post_proj, patch_embed_in_chans=3
         patch_embed_in_chans = in_chans if self.proj_type == 0 else 3

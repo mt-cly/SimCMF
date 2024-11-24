@@ -1,7 +1,7 @@
 import argparse
 
 def valid_type(value):
-    choices = ['baseline_a', 'baseline_b', 'baseline_c', 'baseline_d', 'simmat']
+    choices = ['baseline_a', 'baseline_b', 'baseline_c', 'baseline_d', 'simmat', 'zeroshot']
     if value in choices or value.__contains__('preconv') or value.__contains__('preattn'):
         return value
     raise 'wrong -proj_type'
@@ -9,6 +9,8 @@ def valid_type(value):
 
 def parse_args():    
     parser = argparse.ArgumentParser()
+    parser.add_argument('-uniformInit', action="store_true", help='if uniform init')
+    parser.add_argument('-seed', type=int, default=8888, help='seed')
     parser.add_argument('-net', type=str, required=True, help='specify the tuning methods from {sam_lora, sam_prefix}.')
     parser.add_argument('-modality', default='rgbp', type=str,help='modality name')
     parser.add_argument('-proj_type', type=valid_type, help='the pre-projection before foundation model')

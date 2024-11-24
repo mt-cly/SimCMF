@@ -13,6 +13,7 @@ from torch.utils.data.distributed import DistributedSampler
 from conf.global_settings import modality_datapath_map
 
 def get_dataloader(args):
+    g =torch.Generator()
 
     data_path = modality_datapath_map[args.modality]
     
@@ -49,9 +50,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(zju_rgbp_train_dataset)
             test_sampler = DistributedSampler(zju_rgbp_test_dataset)
         nice_train_loader = DataLoader(zju_rgbp_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(zju_rgbp_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
         '''end'''
 
     elif args.modality == "nir":
@@ -67,9 +68,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(nir_train_dataset)
             test_sampler = DistributedSampler(nir_test_dataset)
         nice_train_loader = DataLoader(nir_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "rgbnir":
         '''nir data'''
@@ -83,9 +84,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(nir_train_dataset)
             test_sampler = DistributedSampler(nir_test_dataset)
         nice_train_loader = DataLoader(nir_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
 
     elif args.modality == "rgbt":
@@ -99,9 +100,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(nir_train_dataset)
             test_sampler = DistributedSampler(nir_test_dataset)
         nice_train_loader = DataLoader(nir_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "t":
         '''rgb and thermal glass data'''
@@ -114,9 +115,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(nir_train_dataset)
             test_sampler = DistributedSampler(nir_test_dataset)
         nice_train_loader = DataLoader(nir_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(nir_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "rgbt_500":
         '''rgb and thermal glass data'''
@@ -129,9 +130,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(rgbt_train_dataset)
             test_sampler = DistributedSampler(rgbt_test_dataset)
         nice_train_loader = DataLoader(rgbt_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(rgbt_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "t_500":
         '''rgb and thermal glass data'''
@@ -144,9 +145,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(t_train_dataset)
             test_sampler = DistributedSampler(t_test_dataset)
         nice_train_loader = DataLoader(t_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(t_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "pgsnet_rgbp":
         pgsnet_train_dataset = PGSNet_RGBP(args, data_path, transform=transform_train,
@@ -158,9 +159,9 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(pgsnet_train_dataset)
             test_sampler = DistributedSampler(pgsnet_test_dataset)
         nice_train_loader = DataLoader(pgsnet_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(pgsnet_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
     elif args.modality == "pgsnet_p":
         pgsnet_train_dataset = PGSNet_P(args, data_path, transform=transform_train,
@@ -173,11 +174,11 @@ def get_dataloader(args):
             train_sampler = DistributedSampler(pgsnet_train_dataset)
             test_sampler = DistributedSampler(pgsnet_test_dataset)
         nice_train_loader = DataLoader(pgsnet_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
-                                       pin_memory=True)
+                                       pin_memory=True, generator=g)
         nice_test_loader = DataLoader(pgsnet_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
-                                      pin_memory=True)
+                                      pin_memory=True, generator=g)
 
-    elif args.modality == 'rgbd' or args.modality == 'rgbhha':
+    elif args.modality == 'rgbd':
         nyudv2_train_dataset = NYUDv2_RGBD(data_path, transform=transform_train, transform_msk=transform_train_seg,
                                       mode='train')
         nyudv2_test_dataset = NYUDv2_RGBD(data_path, transform=transform_test, transform_msk=transform_test_seg,
@@ -186,9 +187,10 @@ def get_dataloader(args):
         if args.ddp:
             train_sampler = DistributedSampler(nyudv2_train_dataset)
             test_sampler = DistributedSampler(nyudv2_test_dataset)
-        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0)
-        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
-                                      pin_memory=True)
+        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
+                                       pin_memory=True, generator=g)
+        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
+                                      pin_memory=True, generator=g)
 
     elif args.modality == 'd':
         nyudv2_train_dataset = NYUDv2_D(data_path, transform=transform_train, transform_msk=transform_train_seg,
@@ -199,9 +201,10 @@ def get_dataloader(args):
         if args.ddp:
             train_sampler = DistributedSampler(nyudv2_train_dataset)
             test_sampler = DistributedSampler(nyudv2_test_dataset)
-        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0)
-        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
-                                      pin_memory=True)
+        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
+                                       pin_memory=True, generator=g)
+        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
+                                      pin_memory=True, generator=g)
 
 
     elif args.modality == 'hha':
@@ -213,9 +216,10 @@ def get_dataloader(args):
         if args.ddp:
             train_sampler = DistributedSampler(nyudv2_train_dataset)
             test_sampler = DistributedSampler(nyudv2_test_dataset)
-        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0)
-        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
-                                      pin_memory=True)
+        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
+                                       pin_memory=True, generator=g)
+        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
+                                      pin_memory=True, generator=g)
 
     elif args.modality == 'rgbhha':
         nyudv2_train_dataset = NYUDv2_RGBHHA(data_path, transform=transform_train, transform_msk=transform_train_seg,
@@ -226,9 +230,10 @@ def get_dataloader(args):
         if args.ddp:
             train_sampler = DistributedSampler(nyudv2_train_dataset)
             test_sampler = DistributedSampler(nyudv2_test_dataset)
-        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0)
-        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=4,
-                                      pin_memory=True)
+        nice_train_loader = DataLoader(nyudv2_train_dataset, batch_size=args.b, sampler=train_sampler, num_workers=0,
+                                       pin_memory=True, generator=g)
+        nice_test_loader = DataLoader(nyudv2_test_dataset, batch_size=1, sampler=test_sampler, num_workers=0,
+                                      pin_memory=True, generator=g)
 
     elif args.modality == 'taskonnomy_10':
         raise NotImplementedError
@@ -334,12 +339,12 @@ class ZJU_RGBP(Dataset):
         # normalization
         norm_img = (img - self.mean) / self.std
 
-        new_modality = torch.from_numpy(np.array(raw)).permute(0,3,1,2)
-        new_modality = torch.nn.functional.interpolate(new_modality, (256,256))
+        # new_modality = torch.from_numpy(np.array(raw)).permute(0,3,1,2)
+        # new_modality = torch.nn.functional.interpolate(new_modality, (256,256))
 
         return {
             'orig_img': img[:3].flip(0),
-            'new_modality': new_modality,
+            'new_modality': (norm_img[3:6]/4+0.5),
             'image': norm_img,
             'label': mask,
             'p_label': point_label,
@@ -1234,7 +1239,7 @@ class NYUDv2_HHA(Dataset):
             mask[mask == region_id] = 1
         return {
             'orig_img': img[:3],
-            'new_modality': img,
+            'new_modality': torch.from_numpy(np.array(img_hha)).permute(2,0,1)/255,
             'image': norm_img,
             'label': mask,
             'p_label': point_label,
@@ -1429,6 +1434,7 @@ class RGBNIR(Dataset):
         rgb_img = Image.open(rgb_img_path)
         nir_img = Image.open(img_path).convert('L')
 
+
         img_arr = np.concatenate([np.array(rgb_img), np.array(nir_img)[:, :, np.newaxis]], axis = -1)
         img = Image.fromarray(img_arr)
         gt = Image.open(msk_path).convert('I')
@@ -1474,11 +1480,12 @@ class RGBNIR(Dataset):
             mask[mask != region_id] = 0
             mask[mask == region_id] = 1
 
+        new_modality = img[3:]
         img = (img - self.mean)/self.std
 
         return {
             'orig_img': img[:3],
-            'new_modality': img[3:],
+            'new_modality': new_modality,
             'image': img,
             'label': mask,
             'p_label': point_label,

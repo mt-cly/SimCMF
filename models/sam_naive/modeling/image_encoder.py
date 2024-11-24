@@ -62,7 +62,7 @@ class ImageEncoderViT(nn.Module):
         self.args = args
         self.proj_type = kwargs['proj_type']
         # create projector and layer-wise deep_fusion_blocks
-        self.projector = Pre_Callback_Post_Projector(modal_chans=in_chans,
+        self.projector = Pre_Callback_Post_Projector(uniform_init=args.uniformInit, modal_chans=in_chans,
                                                     SAM_embedding_chans=embed_dim,
                                                     **kwargs)
         self.deep_fusion_blocks = get_deep_fusion_blocks(num_layers=depth, SAM_embedding_chans=embed_dim, proj_type=self.proj_type, pretrain=kwargs['pretrained_state_dict'])
