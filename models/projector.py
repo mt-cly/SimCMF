@@ -355,7 +355,7 @@ class Pre_Callback_Post_Projector(nn.Module):
                 nn.init.uniform_(self.zip_rgbx.weight)
                 nn.init.zeros_(self.zip_rgbx.bias)
 
-        elif proj_type =='simmat':
+        elif proj_type =='simcmf':
             self.moe = nn.Sequential(nn.Conv2d(modal_chans, modal_chans*inplane, 3, 1, padding=1),
                                      LayerNorm2d(modal_chans*inplane),
                                      nn.ReLU(),
@@ -437,7 +437,7 @@ class Pre_Callback_Post_Projector(nn.Module):
             return output, None
 
 
-        elif self.proj_type == 'simmat':
+        elif self.proj_type == 'simcmf':
             weights = torch.sigmoid(self.moe(input))
             up_branch, down_branch = input * weights, input * (1-weights)
             # old

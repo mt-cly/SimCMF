@@ -2,7 +2,7 @@
 net=sam_lora
 modality=rgbnir
 lr=3e-4
-proj_type=simmat
+proj_type=simcmf
 exp_name=aaa
 
 python -u train.py -net ${net} \
@@ -17,7 +17,7 @@ python -u train.py -net ${net} \
 net=sam_full_finetune
 dataset=rgbnir
 lr=3e-5
-modality=simmat
+modality=simcmf
 exp_name=${dataset}_projtype${proj_type}_uniformInit_${net}_lr${lr}
 
 python -u train.py -net ${net} \
