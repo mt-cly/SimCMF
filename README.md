@@ -77,11 +77,14 @@ sh train.sh
 ## Citation
 
 ```
-@article{lei2024simcmf,
-  title={SimCMF: A Simple Cross-modal Fine-tuning Strategy from Vision Foundation Models to Any Imaging Modality},
-  author={Lei, Chengyang and Chen, Liyi and Cen, Jun and Chen, Xiao and Lei, Zhen and Heide, Felix and Chen, Qifeng and Zhang, Zhaoxiang},
-  year={2024}
-}
+@misc{ikemura2024robust,
+      title={SimCMF: A Simple Cross-modal Fine-tuning Strategy from Vision Foundation Models to Any Imaging Modality},
+      author={Lei, Chengyang and Chen, Liyi and Cen, Jun and Chen, Xiao and Lei, Zhen and Heide, Felix and Chen, Qifeng and Zhang, Zhaoxiang},
+      year={2024},
+      eprint={2409.08083},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+  }
 ```
 
 ## Acknowledgements

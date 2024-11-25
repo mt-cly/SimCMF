@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description"
+          content="SimCMF: A Simple Cross-modal Fine-tuning Strategy from Vision Foundation Models to Any Imaging Modality">
+    <!-- <meta name="keywords" content="Nerfies, D-NeRF, NeRF"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Robust Depth Enhancement via Polarization Prompt Fusion Tuning.</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-PYVRSFMDRL');
+    </script>
+
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="./static/css/bulma.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="./static/css/index.css">
+    <!-- <link rel="icon" href="./static/images/favicon.svg"> -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="./static/js/fontawesome.all.min.js"></script>
+    <script src="./static/js/bulma-carousel.min.js"></script>
+    <script src="./static/js/bulma-slider.min.js"></script>
+    <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+</nav>
+
+
+<section class="hero">
+    <div class="hero-body">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered">
+                <div class="column has-text-centered">
+                    <h1 class="title is-1 publication-title">SimCMF: A Simple Cross-modal Fine-tuning Strategy from
+                        Vision Foundation Models to Any Imaging Modality</h1>
+                    <!--          <br>-->
+                    <!--          <div class="column is-full_width">-->
+                    <!--            <h2 class="title is-4">CVPR 2024</h2>-->
+                    <!--          </div>-->
+                    <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://chenyanglei.github.io/">Chenyang Lei</a><sup>1,2*</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://scholar.google.com.hk/citations?user=nMev-10AAAAJ&hl=zh-CN&oi=sra">Liyi Chen</a><sup>1,3*</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://cen-jun.com/">Jun Cen</a><sup>4</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=swFOM1wAAAAJ&hl=en">Xiao Chen</a><sup>1,3</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="http://www.cbsr.ia.ac.cn/users/zlei/">Zhen Lei</a><sup>1,5</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://www.cs.princeton.edu/~fheide/">Felix Heide</a><sup>2</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://cqf.io/">Qifeng Chen</a><sup>4 &dagger;</sup>,
+            </span>
+                        <span class="author-block">
+              <a href="https://zhaoxiangzhang.net/chinese/">Zhaoxiang Zhang</a><sup>1,5 &dagger;</sup>
+            </span>
+                    </div>
+
+                    <div class="is-size-5 publication-authors">
+                        <span class="author-block"><sup>1</sup>CAIR, HKISI, CAS,</span>
+                        <span class="author-block"><sup>2</sup>Princeton University,</span>
+                        <span class="author-block"><sup>3</sup>HK PolyU, </span>
+                        <span class="author-block"><sup>4</sup>HKUST,</span>
+                        <span class="author-block"><sup>5</sup>CASIA, CAS</span>
+                    </div>
+
+                    <div class="is-size-6 publication-authors">
+                        <sup>*</sup> Equal Contribution, <sup>&dagger;</sup> Corresponding Authors
+                    </div>
+
+                    <div class="column has-text-centered">
+                        <div class="publication-links">
+                            <!-- PDF Link. -->
+                            <!--              <span class="link-block">-->
+                            <!--                <a href="https://arxiv.org/pdf/2404.04318.pdf"-->
+                            <!--                   class="external-link button is-normal is-rounded is-dark">-->
+                            <!--                  <span class="icon">-->
+                            <!--                      <i class="fas fa-file-pdf"></i>-->
+                            <!--                  </span>-->
+                            <!--                  <span>Paper</span>-->
+                            <!--                </a>-->
+                            <!--              </span>-->
+                            <span class="link-block">
+                <a href="https://arxiv.org/abs/2409.08083"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+                            <!-- Code Link. -->
+                            <span class="link-block">
+                <a href="https://github.com/mt-cly/SimCMF"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+
+                            <!--              &lt;!&ndash; YouTube Link. &ndash;&gt;-->
+                            <!--              <span class="link-block">-->
+                            <!--                <a href="https://www.youtube.com/watch?v=KlnD0C-VeKw&t=22s"-->
+                            <!--                   class="external-link button is-normal is-rounded is-dark">-->
+                            <!--                  <span class="icon">-->
+                            <!--                    <i class="fab fa-youtube"></i>-->
+                            <!--                  </span>-->
+                            <!--                  <span>YouTube</span>-->
+                            <!--                  </a>-->
+                            <!--              </span>-->
+                            <!--              &lt;!&ndash; Bilibili Link. &ndash;&gt;-->
+                            <!--              <span class="link-block">-->
+                            <!--                <a href="https://www.bilibili.com/video/BV1w1421r7N7/"-->
+                            <!--                   class="external-link button is-normal is-rounded is-dark">-->
+                            <!--                  &lt;!&ndash; <span class="icon"> &ndash;&gt;-->
+                            <!--                    &lt;!&ndash; <i class="fa-brands fa-bilibili"></i> &ndash;&gt;-->
+                            <!--                  &lt;!&ndash; </span> &ndash;&gt;-->
+                            <!--                  <span>bilibili</span>-->
+                            <!--                  </a>-->
+                            <!--              </span>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--<div class="container is-centered has-text-centered">-->
+<!--  <iframe width="960" height="540" src="https://www.youtube.com/embed/KlnD0C-VeKw?si=ETdTyOkN1GKWDWEg"  -->
+<!--  frameborder="0" -->
+<!--  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" -->
+<!--  referrerpolicy="strict-origin-when-cross-origin" -->
+<!--  allowfullscreen>-->
+<!--  </iframe>-->
+<!--  -->
+<!--</div>-->
+<br>
+<br>
+<section class="hero teaser">
+    <div class="container is-max-desktop">
+
+        <img src="./static/figures/overview.png"
+             width="1200"
+             height="800">
+
+    </div>
+
+    <br>
+
+    <div class="container is-max-desktop">
+        <div class="hero-body">
+            <!-- <image id="teaser" autoplay muted loop playsinline height="100%"> -->
+            <!-- </image> -->
+            <h2 class="subtitle">
+                <b>SimCMF</b> aims to transfer the ability of large RGB-based models to other modalities (e.g., Depth,
+                Thermal, Polarization), which suffering from limited training data. For example,SimCMF enable the
+                Segment Anything Model the ability to handle modality beyond RGB images.
+            </h2>
+        </div>
+    </div>
+</section>
+
+
+<section class="section">
+    <div class="container is-max-desktop">
+        <!-- Abstract. -->
+        <div class="container is-centered has-text-centered">
+            <h2 class="title is-3">Abstract</h2>
+            <div class="content has-text-justified">
+                <p>
+                    Foundation models like ChatGPT and Sora that are trained on a huge scale of data have made a
+                    revolutionary social impact. However, it is extremely challenging for sensors in many different
+                    fields to collect similar scales of natural images to train strong foundation models. To this end,
+                    this work presents a simple and effective framework, SimCMF, to study an important problem:
+                    cross-modal fine-tuning from vision foundation models trained on natural RGB images to other imaging
+                    modalities of different physical properties (e.g., polarization). In SimCMF, we conduct a thorough
+                    analysis of different basic components from the most naive design and ultimately propose a novel
+                    cross-modal alignment module to address the modality misalignment problem. We apply SimCMF to a
+                    representative vision foundation model Segment Anything Model (SAM) to support any evaluated new
+                    imaging modality. Given the absence of relevant benchmarks, we construct a benchmark for performance
+                    evaluation. Our experiments confirm the intriguing potential of transferring vision foundation
+                    models in enhancing other sensors' performance: SimCMF can improve the segmentation performance
+                    (mIoU) from 22.15% to 53.88% on average for evaluated modalities and consistently outperforms
+                    other baselines.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr>
+
+<section class="section">
+    <!-- Paper video. -->
+    <div class="container is-centered has-text-centered">
+        <h2 class="title is-3">Architecture</h2>
+        <img src="./static/figures/simcmf_framework.png"
+             width="900"
+             height="210">
+    </div>
+
+    <div class="container is-max-desktop">
+        <div class="hero-body">
+            <!-- <image id="teaser" autoplay muted loop playsinline height="100%"> -->
+            <!-- </image> -->
+            <h2 class="subtitle">
+                <b> SimCMF </b> receives new modality x as input and pass it through a cross-modal alignment
+                module to obtain an embedding. The embedding matches the dimension of a pretrained foundation model
+                backbone, and then we obtain
+                the output y. The input and foundation are designed in a generic formulation for different input
+                modalities and foundation models.
+
+            </h2>
+        </div>
+    </div>
+</section>
+
+<hr>
+
+<section class="section">
+
+    <!-- Animation. -->
+    <div class="container is-centered  has-text-centered">
+        <h2 class="title is-3">Visualization</h2>
+
+        <!-- Interpolating. -->
+        <h3 class="title is-4">Segmentation Comparison</h3>
+
+        <img src="./static/figures/results.png"
+             width="1200"
+             height="2500">
+
+    </div>
+
+    <br>
+
+    <div class="container is-max-desktop">
+        <div class="hero-body">
+            <!-- <image id="teaser" autoplay muted loop playsinline height="100%"> -->
+            <!-- </image> -->
+            <h2 class="subtitle">
+                <b>Qualitative Results</b> We transfer the segment anything ability of SAM to different modalities,
+                including segmentation from depth, thermal, polarization, NIR, and HHA images. The proposed method
+                significantly improves segmentation quality compared to SAM zero-shot and training from scratch.
+            </h2>
+        </div>
+    </div>
+    <!--    &lt;!&ndash; Re-rendering. &ndash;&gt;-->
+    <!--    <div class="container is-centered  has-text-centered">-->
+
+    <!--        <h3 class="title is-4">Depth Map Visualization</h3>-->
+
+    <!--        <img src="./static/images/2d.png"-->
+    <!--             width="1200"-->
+    <!--             height="800">-->
+
+
+    <!--        <br>-->
+    <!--    </div>-->
+
+    <!--    <div class="container is-max-desktop">-->
+    <!--        <div class="hero-body">-->
+    <!--            &lt;!&ndash; <image id="teaser" autoplay muted loop playsinline height="100%"> &ndash;&gt;-->
+    <!--            &lt;!&ndash; </image> &ndash;&gt;-->
+    <!--            <h2 class="subtitle">-->
+    <!--                <b>Qualitative comparison on HAMMER dataset.</b> We present results on different depth sensors. The red-->
+    <!--                boxes highlight-->
+    <!--                regions to emphasize. We can observe significantly better results on transparent surfaces, i.e. the-->
+    <!--                water bottle,-->
+    <!--                and detailed regions, for example, the stack of objects on the left in Row 2.-->
+    <!--            </h2>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <!--/ Animation. -->
+
+</section>
+
+<hr>
+
+<!--<section class="section">-->
+<!--    <div class="container is-max-desktop">-->
+<!--        <div class="container is-centered  has-text-centered">-->
+<!--            &lt;!&ndash;/ Re-rendering. &ndash;&gt;-->
+<!--            <h3 class="title is-3">Results on HAMMER</h3>-->
+<!--            <div class="container is-max-desktop">-->
+
+<!--                <img src="./static/images/result.png"-->
+<!--                     width="1200"-->
+<!--                     height="1200">-->
+
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <br>-->
+
+<!--        <div class="container is-max-desktop">-->
+<!--            <div class="hero-body">-->
+<!--                &lt;!&ndash; <image id="teaser" autoplay muted loop playsinline height="100%"> &ndash;&gt;-->
+<!--                &lt;!&ndash; </image> &ndash;&gt;-->
+<!--                <h2 class="subtitle">-->
+<!--                    <b>Polarization Prompt Fusion Tuning (PPFT)</b> leverages the dense shape cues from polarization-->
+<!--                    and produces accurate results on challenging depth enhancement problems.-->
+<!--                </h2>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</section>-->
+
+
+<section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+        <h2 class="title">BibTeX</h2>
+        <pre><code>@misc{ikemura2024robust,
+      title={SimCMF: A Simple Cross-modal Fine-tuning Strategy from Vision Foundation Models to Any Imaging Modality},
+      author={Lei, Chengyang and Chen, Liyi and Cen, Jun and Chen, Xiao and Lei, Zhen and Heide, Felix and Chen, Qifeng and Zhang, Zhaoxiang},
+      year={2024},
+      eprint={2409.08083},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+  }</code></pre>
+    </div>
+</section>
+
+
+<section class="section">
+    <div class="container is-max-desktop">
+        <div class="columns is-centered">
+            <div class="column is-full-width">
+                <h2 class="title is-3">Acknowledgement</h2>
+
+                <div class="content has-text-justified">
+                    <p>
+                        We sincerely thank <a
+                            href="https://youmi-zym.github.io/projects/CompletionFormer/"> CompletionfFormer</a>
+                        for their opensource code. We also thanks <a href="https://arxiv.org/abs/2303.14840">
+                        HAMMER </a> for the opensource dataset.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <!-- <div class="content has-text-centered">
+          <a class="icon-link"
+             href="./static/videos/nerfies_paper.pdf">
+            <i class="fas fa-file-pdf"></i>
+          </a>
+          <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
+            <i class="fab fa-github"></i>
+          </a>
+        </div> -->
+        <div class="columns is-centered">
+            <div class="column is-8">
+                <div class="content">
+                    <p>
+                        This website is licensed under a <a rel="license"
+                                                            href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+                        Commons Attribution-ShareAlike 4.0 International License</a>.
+                        This webpage template is from <a
+                            href="https://github.com/nerfies/nerfies.github.io"> Nerfies.</a>
+                        We sincerely thank <a href="https://keunhong.com/">Keunhong Park
+                    </a> for developing and open-sourcing this template.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
